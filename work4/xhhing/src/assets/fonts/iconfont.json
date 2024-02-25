@@ -1,0 +1,23 @@
+{
+  "id": "4433883",
+  "name": "work4",
+  "font_family": "iconfont",
+  "css_prefix_text": "icon-",
+  "description": "",
+  "glyphs": [
+    {
+      "icon_id": "77697",
+      "name": "点赞",
+      "font_class": "dianzan",
+      "unicode": "e600",
+      "unicode_decimal": 58880
+    },
+    {
+      "icon_id": "8288891",
+      "name": "眼睛",
+      "font_class": "yanjing",
+      "unicode": "e857",
+      "unicode_decimal": 59479
+    }
+  ]
+}
