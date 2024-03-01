@@ -27,6 +27,7 @@ import { ref } from 'vue';
 import router from '@/router';
 import axios from 'axios';
 import useUserStore from '@/stores/store';
+import { ElMessage } from 'element-plus';   //引入提示函数
 
 const text = ref('')
 const title = ref('')
@@ -39,22 +40,34 @@ function enterLoginer (){
 
 //点击事件，发布博客
 function addBlog (){
-    let formData = new FormData()
-    formData.append('title', title.value)  // 通过append向form对象添加数据
-    formData.append('content', text.value) // 添加form表单中其他数据
-    axios({
-        method:"POST",
-        url:"http://8.130.119.35:8081/user/add_blog",
-        headers:{
-            Authorization:sLoginer.logindata.authorization,
-        },
-        data:formData
-    }).then(response=>{
-        console.log(response)
-    }).catch(error =>{
-        console.log(error)
-
-    })
+    if (title.value === "" || text.value === ""){
+        ElMessage({
+            message: '文章标题或内容未编辑！',
+            type: 'warning',
+        })
+    }
+    else{
+        let formData = new FormData()
+        formData.append('title', title.value)  // 通过append向form对象添加数据
+        formData.append('content', text.value) // 添加form表单中其他数据
+        axios({
+            method:"POST",
+            url:"http://8.130.119.35:8081/user/add_blog",
+            headers:{
+                Authorization:sLoginer.logindata.authorization,
+            },
+            data:formData
+        }).then(response=>{
+            console.log(response)
+            ElMessage({
+                message: '发布成功！',
+                type: 'success',
+            })
+        }).catch(error =>{
+            console.log(error)
+            ElMessage.error('发布失败！')
+        })
+    }
 }
 
 </script>

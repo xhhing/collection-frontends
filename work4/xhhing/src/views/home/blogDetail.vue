@@ -7,7 +7,7 @@
                 <span class="iconfont icon-dianzan my-icon"></span>
             </div>
             <!-- 评论 -->
-            <div class="btn-comments btn" :data-after="blog.clickNum" @click="commentClick">
+            <div class="btn-comments btn" :data-after="blog.fcommentNum" @click="commentClick">
                 <el-icon my-icon><ChatLineSquare /></el-icon>
             </div>
         </div>
@@ -19,7 +19,7 @@
                 <div class="time">{{ blog.createTime }}</div>
                 <div class="clickNum">
                     <el-icon><View /></el-icon>
-                    <span>{{  }}</span>
+                    <span>{{ blog.clickNum }}</span>
                 </div>
             </div>
             <div class="article" v-html="markdownToHtml"></div>
@@ -33,7 +33,7 @@
         <div class="comment-area">
             <div class="comment-container">
                 <div class="c-header">
-                    <span class="c-title">评论 {{  }}</span>
+                    <span class="c-title">评论 {{ blog.fcommentNum }}</span>
                     <el-icon class="close-btn" size="18px" @click="cannelOpen"><Close /></el-icon>
                 </div>
             <el-scrollbar height="650px">  <!-- 滚动条 -->
@@ -47,11 +47,12 @@
                             class="c-input" 
                             v-model="myComment"
                             @focus="isFocus=true" 
-                            @blur="isFocus=false" 
+                            @blur="isFocus=false"
                             placeholder="平等表达，友善交流"
                             ></textarea
                         >
-                        <el-button type="primary">发送</el-button>
+                        <!-- 取消浏览器默认事件  mousedown.prevent -->
+                        <el-button @mousedown.prevent @click.stop="sendF" type="primary">发送</el-button>
                     </div>
                 </div>
                 <div class="c-list">
@@ -60,54 +61,46 @@
                         <div class="list" v-for="(item,index) in blog_comments" >
                             <!-- 评论者的头像 -->
                             <div class="comment-avatar">
-                                <img class="avatar-image" :src=sLoginer.logindata.image alt="">
+                                <img class="avatar-image" :src=item.image alt="">
                             </div>
                             <!-- 评论主体 -->
                             <div class="comment-body">
-                                <span class="comment-name">name</span>
-                                <div class="comment-content">content</div>
+                                <span class="comment-name">{{ item.author }}</span>
+                                <div class="comment-content">{{ item.content }}</div>
                                 <div class="comment-action">
-                                    <span class="createTime">time</span>
-                                    <!-- 点赞量显示 -->
-                                    <div class="comment-likedNum">
-                                        <span class="iconfont icon-dianzan"></span>
-                                        <span>num</span>
-                                    </div>
+                                    <!-- 评论的时间 -->
+                                    <span class="createTime">{{ item.createdTime}}</span>
                                     <!-- 评论的回复 -->
-                                    <div class="comment-reply" :class="{isclick:isreply[index]}" @click="replyClick(index)">
+                                    <div class="comment-reply" :class="{isclick:blog_comments[index].isreply}" @click="replyClick(index)">
                                         <el-icon><ChatDotSquare /></el-icon>
-                                        <span v-if="isreply[index]">取消回复</span>
+                                        <span v-if="blog_comments[index].isreply">取消回复</span>
                                     </div>
                                 </div>
                                 <!-- 评论的回复框 -->
-                                <div class="reply" v-if="isreply[index]">
+                                <div class="reply" v-if="blog_comments[index].isreply">
                                     <textarea 
                                         class="r-input" 
-                                        v-model="myReply[index]" 
+                                        v-model="blog_comments[index].myReply"
                                         placeholder="回复"
+                                        autofocus="autofocus"
                                         ></textarea
                                     >
-                                    <el-button type="primary" size="small">回复</el-button>
+                                    <el-button @click="sendC(index)" type="primary" size="small">回复</el-button>
                                 </div>
                                 <!-- 子评论 -->
                                 <div class="reply-list">
                                     
-                                    <div class="list" v-for="(item,index) in blog_comments" >
+                                    <div class="list" v-for="(item,index) in blog_comments[index].scomments" >
                                         <!-- 评论者的头像 -->
                                         <div class="comment-avatar">
-                                            <img class="avatar-image" :src=sLoginer.logindata.image alt="">
+                                            <img class="avatar-image" :src=item.image alt="">
                                         </div>
                                         <!-- 评论主体 -->
                                         <div class="comment-body">
-                                            <span class="comment-name">name</span>
-                                            <div class="comment-content">content</div>
+                                            <span class="comment-name">{{ item.author }}</span>
+                                            <div class="comment-content">{{ item.content }}</div>
                                             <div class="comment-action">
-                                                <span class="createTime">time</span>
-                                                <!-- 点赞量显示 -->
-                                                <div class="comment-likedNum">
-                                                    <span class="iconfont icon-dianzan"></span>
-                                                    <span>num</span>
-                                                </div>
+                                                <span class="createTime">{{ item.createdTime }}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -137,29 +130,74 @@ const route = useRoute()
 console.log(route.query.msg)
 const sLoginer = useUserStore()
 
+//博客对象
 const blog = ref({
-    content:""
+    content:"",
 })
-const blog_comments = ref([1,2])
+//博客评论对象数组
+const blog_comments = ref([])
 
 const isopen = ref(false)
 const isFocus = ref(false)
-// 回复最多一千条
-const isreply = ref([])
-isreply.value = new Array(1000).fill(false)
 
 const myComment = ref("")
-const myReply = ref([])
 
-//回复点击事件，弹出/取消输入框
+//函数：回复评论
+function sendC(index){
+    axios({
+        method:"GET",
+        url:"http://8.130.119.35:8081/user/add_scomment",
+        params:{
+            content:blog_comments.value[index].myReply,
+            fcomment_id:blog_comments.value[index].id,
+        },
+        headers:{
+            Authorization:sLoginer.logindata.authorization,
+        }
+    }).then(response=>{
+        console.log(response)
+        blog_comments.value[index].scomments.unshift(response.data.data)
+        console.log(blog_comments.value[index].scomments)
+    }).catch(error=>{
+        console.log(error)
+    })
+}
+
+//函数：发送父评论
+function sendF(){
+    axios({
+        method:"GET",
+        url:"http://8.130.119.35:8081/user/add_fcomment",
+        params:{
+            blog_id:blog.value.id,
+            content:myComment.value,
+        },
+        headers:{
+            Authorization:sLoginer.logindata.authorization,
+        }
+    }).then(response=>{
+        console.log(response)
+        myComment.value = ""
+        blog_comments.value.unshift(response.data.data) //因为时间最新，在头部插入评论对象
+        console.log("blog_comments:"+blog_comments.value)
+    }).catch(error=>{
+        console.log(error)
+    })
+}
+
+//子评论：回复点击事件，弹出/取消输入框
 function replyClick (index){
-    if (isreply.value[index]){
-        isreply.value[index] = false
+    if (blog_comments.value[index].isreply){
+        blog_comments.value[index].isreply = false
     }
     else{
-        isreply.value[index] = true
+        blog_comments.value[index].isreply = true
     }
 }
+
+// console.log(route.query.msg)
+// let formData = new FormData()
+// formData.append('blog_id', route.query.msg)
 
 //请求文章内容
 axios({
@@ -176,17 +214,25 @@ axios({
     console.log(response)
     const res = response.data.data
     blog.value = res
+    //更改时间格式
+    const dateString = new Date(blog.value.createTime)
+    blog.value.createTime = 
+        dateString.getFullYear() + '-' + 
+        (dateString.getMonth() + 1) + '-' + 
+        dateString.getDate()
     console.log(blog.value)
 }).catch(error=>{
     console.log(error)
 })
 
+// markdown转html
 const markdownToHtml = computed(() =>{
     return marked(blog.value.content)
 })
-console.log(blog.value.id)
+
 //点赞按钮点击事件
 function likedClick (){
+    console.log("isLiked:"+blog.value.isLiked)
     axios({
         method:"GET",
         url:"http://8.130.119.35:8081/user/like",
@@ -201,10 +247,17 @@ function likedClick (){
         console.log(response)
         const res = response.data.data
         blog.value.isLiked = res.isLiked
+        if (blog.value.isLiked === 1){
+            blog.value.liked++
+        }
+        else{
+            blog.value.liked--
+        }
     }).catch(error=>{
         console.log(error)
     })
 }
+
 //评论按钮点击事件
 function commentClick (){
     //打开or关闭
@@ -215,17 +268,53 @@ function commentClick (){
     //axios 请求 该博客的评论
     axios({
         method:'GET',
-        url:"https://8.130.119.35:8081/fcomment",
+        url:"http://8.130.119.35:8081/fcomment",
         params:{
             blog_id:blog.value.id,
         }
     }).then(response=>{
         console.log(response)
-        blog_comments.value = response.data.data
+        const res = response.data.data
+        blog_comments.value = res
+        //遍历添加对象属性——isreply（是否打开回复框）、myReply（回复的内容）
+        for (let i=0; i<res.length; i++){
+            console.log(blog_comments.value[i])
+            //添加属性
+            Object.defineProperty(blog_comments.value[i],'isreply',{
+                value:false,
+                writable:true,
+            })
+            Object.defineProperty(blog_comments.value[i],'myReply',{
+                value:"",
+                writable:true
+            })
+            //更改时间格式
+            const dateString = new Date(blog_comments.value[i].createdTime)
+            blog_comments.value[i].createdTime = 
+                dateString.getFullYear() + '-' + 
+                (dateString.getMonth() + 1) + '-' + 
+                dateString.getDate() + ' ' + 
+                dateString.getHours() + ':' + 
+                dateString.getMinutes() + ':' + 
+                dateString.getSeconds();
+            //更改子评论的时间
+            for (let j=0; j<blog_comments.value[i].scommentNum; j++){
+                const dateString = new Date(blog_comments.value[i].scomments[j].createdTime)
+                blog_comments.value[i].scomments[j].createdTime = 
+                    dateString.getFullYear() + '-' + 
+                    (dateString.getMonth() + 1) + '-' + 
+                    dateString.getDate() + ' ' + 
+                    dateString.getHours() + ':' + 
+                    dateString.getMinutes() + ':' + 
+                    dateString.getSeconds();
+            }
+        }
+        console.log(blog_comments.value)
     }).catch(error=>{
         console.log(error)
     })
 }
+
 //点击空白区域，关闭评论
 function cannelOpen (){
     isopen.value = false

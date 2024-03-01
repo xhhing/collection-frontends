@@ -36,7 +36,7 @@
       <h2 class="clickBlogs-title">文章榜</h2>
       <ul>
         <li 
-          @click="blogClick(item2.id)"
+          @click="blogClick(item2.blogId)"
           type="1"
           v-for="(item2, index) in filterClickItems" 
           :key="index" 
@@ -64,9 +64,6 @@ axios({
   method:'GET',
   // url:"http://127.0.0.1:4523/m1/3998796-0-default/blog/currents"
   url:'http://8.130.119.35:8081/blog/currents',
-  headers:{
-    Authorization:sLoginer.logindata.authorization
-  }
 }).then(response =>{
     const res = response.data.data
     sLoginer.timeArticles = res
@@ -79,7 +76,7 @@ axios({
 //axios请求博客榜
 axios({
   method:'GET',
-  url:'http://8.130.119.35:8081/blog/likerank',
+  url:'http://8.130.119.35:8081/blog/clickrank',
   // headers:{
   //   Authorization:sLoginer.logindata.authorization
   // }
@@ -93,6 +90,7 @@ axios({
 
 //点赞事件,
 function likedClick (index){
+  console.log(sLoginer.timeArticles[index])
   axios({
     method:"GET",
     url:"http://8.130.119.35:8081/user/like",
@@ -121,6 +119,7 @@ function likedClick (index){
 
 //点击查看博客事件
 function blogClick (id){
+  console.log("id:"+id)
   //进入博客页面
   router.push({
     name:'blogDetail',

@@ -32,7 +32,7 @@
                     <!-- 点击量显示 -->
                     <div class="blog-tip-clickNum">
                         <el-icon><View /></el-icon>
-                        <span>{{  }}</span>
+                        <span>{{ item.clickNum }}</span>
                     </div>
                     <!-- 点赞量显示 -->
                     <div class="blog-tip-likedNum">
@@ -62,12 +62,12 @@
                 <!-- 博客数组渲染 -->
                 <div class="blog" v-for="(item, index) in filterLikediBlogs" :key="index">
                     <h3 class="blog-title">{{ item.title }}</h3>
-                    <div class="blog-tip">s
-                    <span>{{  }}</span>
+                    <div class="blog-tip">
+                    <span>{{ item.author }}</span>
                     <!-- 点击量显示 -->
                     <div class="blog-tip-clickNum">
                         <el-icon><View /></el-icon>
-                        <span>{{  }}</span>
+                        <span>{{ item.clickNum }}</span>
                     </div>
                     <!-- 点赞量显示 -->
                     <div class="blog-tip-likedNum">
@@ -172,7 +172,7 @@ function enterSet (){
 .info{
     display: flex;
     flex-direction: column;
-    height: 90vh;
+    height: 100%;
     align-items: center;
     background-color: #f4f4f5;
 }

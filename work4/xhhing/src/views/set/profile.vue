@@ -46,16 +46,16 @@ const onFileInputChange = () => {
 
 
 function saveClick (){
+    let formData = new FormData()
+    formData.append('username', newName.value)
+    formData.append('image', file)
     axios({
         method:"POST",
         url:"http://8.130.119.35:8081/user/update",
         headers:{
             Authorization:sLoginer.logindata.authorization,
         },
-        data:{
-            username:newName.value,
-            image:file,
-        }
+        data:formData
     }).then(response=>{
         console.log(response)
         const res = response.data.data

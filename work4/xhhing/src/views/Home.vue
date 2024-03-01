@@ -16,7 +16,10 @@
                   <img :src=sLoginer.logindata.image alt="" class="menu-inf-headshot">
                   <span>{{ sLoginer.logindata.name }}</span>
                 </div>
-                <el-button class="menu-btn" width="100px" @click="enterLoginer">个人主页</el-button>
+                <div class="myBtn">
+                  <el-button class="menu-btn" width="100px" @click="enterLoginer">个人主页</el-button>
+                  <el-button class="menu-btn" width="100px" @click="signOut">退出登录</el-button>
+                </div>
               </div>
             </div>
             <el-button type="primary" plain class="btn-1" v-else @click="userLogin">登录|注册</el-button>
@@ -44,6 +47,8 @@ const router = useRouter()
 
 const isOpenMenu = ref(false)
 
+// sLoginer.islogin = false
+
 //头像点击事件
 function openMenu (){
   isOpenMenu.value = true
@@ -58,6 +63,22 @@ function closeMenu() {
 //点击事件，进入创作者中心
 function enterEditor (){
   router.push({name:'editor'})
+}
+
+//点击事件，退出登录
+function signOut(){
+  axios({
+    method:"GET",
+    url:"http://8.130.119.35:8081/user/logout",
+    headers:{
+      Authorization:sLoginer.logindata.authorization,
+    }
+  }).then(response=>{
+    console.log(response)
+    sLoginer.islogin = false
+  }).catch(error=>{
+    console.log(error)
+  })
 }
 
 //点击事件，进入个人主页
@@ -156,9 +177,12 @@ if (sLoginer.islogin === true){
   height:40px;
   width: 40px;
 }
+.myBtn{
+  display: flex;
+  justify-content: space-around;
+}
 .menu-btn{
   margin-top: 10px;
-  margin-left: 16px;
 }
 
 /* 主体部分样式 */
