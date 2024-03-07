@@ -12,7 +12,7 @@
         <!-- 头像的修改 -->
         <div class="avatar-input">
             <div class="avatar-uploder">
-                <img class="avatar" :src=sLoginer.logindata.image alt="">
+                <img class="avatar" :src=tempAvator alt="">
                 <label for="input">
                     <div class="click-cover">点击修改头像</div>
                 </label>
@@ -37,11 +37,23 @@ import { ref } from 'vue';
 const sLoginer = useUserStore()
 const newName = ref("")
 const fileInput = ref(null)
+const tempAvator = ref("")
 
 let file
 
+tempAvator.value = sLoginer.logindata.image
+
 const onFileInputChange = () => {
     file = fileInput.value.files[0]
+    //头像的预览
+    const reader = new FileReader()
+    reader.readAsDataURL(file);
+    // 处理load事件，load：在所有依赖资源（图片、样式等）加载完发生
+    reader.onload = ()=>{
+        tempAvator.value = reader.result
+    }   //为什么去掉这个函数就不能渲染？？？
+    console.log(reader)
+    console.log(reader.result) //为什么打印出来会是null？？？
 }
 
 
